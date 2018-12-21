@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+
+</head>
+<body>
+<!--登录-->
+<div class="login">
+    <input id="name" type="text" placeholder="输入客服名称">
+    <button id="btn-login">登录</button>
+</div>
+
+<div class="chat" style="display: none;">
+    <div class="tab"></div>
+    <ul id="messages"></ul>
+    <form>
+        <input type="text" id="m">
+        <button>发送</button>
+    </form>
+</div>
+
+<script src="/javascripts/jquery.js"></script>
+<script src="/javascripts/socket.io.js"></script>
+<script>
+
+    var socket, userId; // 用户id
+
+    $('#btn-login').click(function () {
+        socket = io('/?name='+$('#name').val());
+        // 成功
+        socket.on('connect', function () {
+            $('.login').hide();
+            $('.chat').show();
+        })
+        socket.on('chat message', function (msg) {
+            // 往聊天记录中添加
+            $('#messages').append($('<li>').text(msg))
+        })
+        socket.on('customer in', function (id) {
+            // 往聊天记录中添加
+            $('.tab').text('用户'+id);
+            userId = id;
+        })
+    })
+
+
+    $('form').submit(function () {
+        socket.emit('chat message', userId, $('#m').val());
+
+        // 往聊天记录中添加
+        $('#messages').append($('<li>').text($('#m').val()))
+
+        $('#m').val('')
+
+        return false;
+    });
+
+
+
+</script>
+</body>
+</html>

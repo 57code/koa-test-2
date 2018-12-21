@@ -7,10 +7,12 @@ const bodyparser = require('koa-bodyparser')
 const logger = require('koa-logger')
 const path = require('path')
 const helper = require('./helpers')
+const session = require('koa-session')
 
 const index = require('./routes/index')
 const users = require('./routes/users')
 
+app.keys = ['kkb_session'];
 
 // 添加ctx.db
 const db = require('./models/db')
@@ -26,6 +28,11 @@ app.use(bodyparser({
 app.use(json())
 app.use(logger())
 app.use(require('koa-static')(__dirname + '/public'))
+// session(config, app)
+const MySqlStore = require('./models/MysqlStore');
+const store = new MySqlStore(null, db.pool)
+app.use(session({key: 'kkb:sess', maxAge: 'session', store}, app))
+
 
 // 模板引擎 koa-hbs
 console.log(path.join(__dirname, './views'));
@@ -44,7 +51,6 @@ app.use(async (ctx, next) => {
     const ms = new Date() - start
     console.log(`${ctx.method} ${ctx.url} - ${ms}ms`)
 })
-
 
 
 // routes

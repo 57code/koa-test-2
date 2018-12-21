@@ -20,7 +20,51 @@ var port = normalizePort(process.env.PORT || '3000');
  */
 
 var server = http.createServer(app.callback());
+// 创建socket实例
+const io = require('socket.io')(server);
 
+const cs = [];// 客服数组
+
+io.on('connection', socket => { // socket代表用户节点
+
+    // console.log(socket);
+
+    // 获取查询参name，若存在则是客服连接
+    const {name} = socket.handshake.query;
+    if (name) {
+        // cs
+        console.log('客服小姐姐' + name + '上线了');
+        cs.push({id: socket.id, name});
+    } else {
+        // c
+        console.log('有客户连接了！');
+        // 分配客服小姐姐
+        if (cs.length > 0) {
+            const ran = Math.floor(Math.random() * cs.length);
+            const kf = cs[ran];
+            // 告诉用户客服接入
+            socket.emit('customer service in', kf);
+            // 通知客服用户连接
+            io.to(kf.id.toString()).emit('customer in', socket.id);
+        } else {
+            // 没有客服在线
+            socket.emit('customer service in', null);
+        }
+    }
+    socket.on('disconnect', () => {
+        console.log('用户走了');
+    })
+    socket.on('chat message', (id, msg) => {
+        // socket广播: 除了发送者之外的所有人
+        // socket.broadcast.emit('chat message', msg)
+
+        // 全局广播:所有人
+        //io.emit('chat message', msg)
+
+        // 私聊
+        io.to(id).emit('chat message', msg)
+    })
+})
 /**
  * Listen on provided port, on all network interfaces.
  */
@@ -34,19 +78,19 @@ server.on('listening', onListening);
  */
 
 function normalizePort(val) {
-  var port = parseInt(val, 10);
+    var port = parseInt(val, 10);
 
-  if (isNaN(port)) {
-    // named pipe
-    return val;
-  }
+    if (isNaN(port)) {
+        // named pipe
+        return val;
+    }
 
-  if (port >= 0) {
-    // port number
-    return port;
-  }
+    if (port >= 0) {
+        // port number
+        return port;
+    }
 
-  return false;
+    return false;
 }
 
 /**
@@ -54,27 +98,27 @@ function normalizePort(val) {
  */
 
 function onError(error) {
-  if (error.syscall !== 'listen') {
-    throw error;
-  }
+    if (error.syscall !== 'listen') {
+        throw error;
+    }
 
-  var bind = typeof port === 'string'
-    ? 'Pipe ' + port
-    : 'Port ' + port;
+    var bind = typeof port === 'string'
+        ? 'Pipe ' + port
+        : 'Port ' + port;
 
-  // handle specific listen errors with friendly messages
-  switch (error.code) {
-    case 'EACCES':
-      console.error(bind + ' requires elevated privileges');
-      process.exit(1);
-      break;
-    case 'EADDRINUSE':
-      console.error(bind + ' is already in use');
-      process.exit(1);
-      break;
-    default:
-      throw error;
-  }
+    // handle specific listen errors with friendly messages
+    switch (error.code) {
+        case 'EACCES':
+            console.error(bind + ' requires elevated privileges');
+            process.exit(1);
+            break;
+        case 'EADDRINUSE':
+            console.error(bind + ' is already in use');
+            process.exit(1);
+            break;
+        default:
+            throw error;
+    }
 }
 
 /**
@@ -82,9 +126,9 @@ function onError(error) {
  */
 
 function onListening() {
-  var addr = server.address();
-  var bind = typeof addr === 'string'
-    ? 'pipe ' + addr
-    : 'port ' + addr.port;
-  debug('Listening on ' + bind);
+    var addr = server.address();
+    var bind = typeof addr === 'string'
+        ? 'pipe ' + addr
+        : 'port ' + addr.port;
+    debug('Listening on ' + bind);
 }

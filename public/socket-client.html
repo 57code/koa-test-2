@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+
+</head>
+<body>
+
+<div class="chat">
+    <div id="cname"></div>
+    <ul id="messages"></ul>
+    <form>
+        <input type="text" id="m">
+        <button>发送</button>
+    </form>
+</div>
+
+<script src="/javascripts/jquery.js"></script>
+<script src="/javascripts/socket.io.js"></script>
+<script>
+
+    const socket = io(); // 默认连接window.location
+    var customerService; // 客服信息
+
+    $('form').submit(function () {
+        socket.emit('chat message', customerService.id, $('#m').val());
+
+        // 往聊天记录中添加
+        $('#messages').append($('<li>').text($('#m').val()))
+
+        $('#m').val('')
+
+        return false;
+    });
+
+    socket.on('chat message', function (msg) {
+        // 往聊天记录中添加
+        $('#messages').append($('<li>').text(msg))
+    })
+    socket.on('customer service in', function (cs) {
+        // 往聊天记录中添加
+        if (cs) {
+            customerService = cs;
+            $('#cname').text(cs.name); // 显示客服名称
+        } else {
+            $('#cname').text('客服小姐姐不在线啊，亲！'); // 没有客服名称
+        }
+
+
+    })
+
+</script>
+</body>
+</html>

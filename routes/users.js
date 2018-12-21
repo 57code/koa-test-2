@@ -12,7 +12,7 @@ router.get('/:id', async function (ctx) {
     // throw(new Error('aaa'))
     await ctx.render('users', {
         layout: false // 和express里面不一样，传false
-        
+
     })
     // ctx.body = 'this is a users response!'
 })
@@ -23,5 +23,7 @@ router.post('/', async (ctx) => {
     await query('select * from user')
     ctx.redirect('/')
 })
+
+
 
 module.exports = router
